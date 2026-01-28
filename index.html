@@ -19,21 +19,13 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['"Noto Sans TC"', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['"Noto Sans TC"', 'sans-serif'] },
                     colors: {
                         'japan-bg': '#FDFCF8',
                         'japan-text': '#2D3748',
                         'japan-red': '#BC002D',
-                        'japan-red-light': '#FF6B6B',
                         'matcha': '#8DA399',
-                        'indigo-jp': '#1A237E',
                         'sakura': '#F8E1E7',
-                    },
-                    boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'card': '0 2px 10px rgba(0, 0, 0, 0.03)',
                     }
                 }
             }
@@ -41,49 +33,20 @@
     </script>
 
     <style>
-        body {
-            background-color: #FDFCF8;
-            color: #2D3748;
-            -webkit-tap-highlight-color: transparent;
-        }
+        body { background-color: #FDFCF8; color: #2D3748; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            height: 300px;
-            max-height: 350px;
-        }
-
-        /* Animations */
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 300px; }
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Modal Animation */
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        body.modal-active {
-            overflow-y: hidden !important;
-        }
-
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow-y: hidden !important; }
         .nav-item.active { color: #BC002D; font-weight: 700; }
         .nav-item.active span:first-child { background-color: #F8E1E7; border-radius: 12px; }
-        
-        /* Checkbox */
         .custom-checkbox:checked + div { background-color: #8DA399; border-color: #8DA399; }
         .custom-checkbox:checked + div:after { content: '✓'; color: white; display: block; text-align: center; font-size: 12px; line-height: 20px; }
     </style>
-
-    <!-- Placeholder Comments -->
-    <!-- Chosen Palette: Nihon Harmony (unchanged) -->
-    <!-- Application Structure Plan: Updated Itinerary to be Date-Specific (1/31-2/16) with CRUD functionality via Modal. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
 <body class="font-sans h-screen flex flex-col overflow-hidden">
 
@@ -91,9 +54,12 @@
     <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center z-20 shrink-0">
         <div>
             <h1 class="text-xl font-bold text-gray-800 tracking-tight">🇯🇵 日本 2026</h1>
-            <p class="text-xs text-gray-500">1/31 - 2/16 (共17天)</p>
+            <p class="text-xs text-gray-500">1/31 - 2/16 (17天)</p>
         </div>
-        <button onclick="toggleSettings()" class="text-2xl hover:bg-gray-100 p-2 rounded-full transition">⚙️</button>
+        <div class="flex gap-2">
+            <button onclick="openSizeGuide()" class="text-xl bg-gray-100 p-2 rounded-full hover:bg-gray-200">👟</button>
+            <button onclick="openSettings()" class="text-xl bg-gray-100 p-2 rounded-full hover:bg-gray-200">⚙️</button>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -101,18 +67,35 @@
         
         <!-- SECTION 1: HOME -->
         <div id="section-home" class="page-section active">
+            <!-- Countdown Card -->
             <div class="bg-gradient-to-r from-indigo-900 to-blue-800 rounded-2xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
                 <div class="absolute right-[-20px] top-[-20px] text-9xl opacity-10">🌸</div>
                 <div class="relative z-10">
                     <p class="text-sm opacity-80">距離出發 (1/31)</p>
                     <h2 class="text-3xl font-bold" id="countdown-display">計算中...</h2>
-                    <div class="mt-4 pt-4 border-t border-white/20 flex justify-between text-sm">
-                        <span>目前進度</span>
-                        <span class="font-bold">規劃中 📝</span>
+                </div>
+            </div>
+
+            <!-- Currency Converter -->
+            <div class="bg-white p-5 rounded-xl shadow-card mb-6 border border-gray-100">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2">💱 快速換算 <span class="text-xs text-gray-400 font-normal">(匯率 <span id="rate-display">0.22</span>)</span></h3>
+                    <button onclick="editRate()" class="text-xs text-blue-500 underline">設定匯率</button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-500 block mb-1">日幣 (JPY)</label>
+                        <input type="number" id="calc-jpy" placeholder="¥" class="w-full text-xl font-bold border-b-2 border-gray-200 focus:border-japan-red outline-none py-1" oninput="convertCurrency('jpy')">
+                    </div>
+                    <div class="text-gray-400">➔</div>
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-500 block mb-1">台幣 (TWD)</label>
+                        <input type="number" id="calc-twd" placeholder="$" class="w-full text-xl font-bold border-b-2 border-gray-200 focus:border-blue-500 outline-none py-1" oninput="convertCurrency('twd')">
                     </div>
                 </div>
             </div>
 
+            <!-- Quick Access Grid -->
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <button onclick="navTo('section-itinerary')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center gap-2 border border-gray-100">
                     <span class="text-3xl">📅</span>
@@ -122,51 +105,45 @@
                     <span class="text-3xl">💴</span>
                     <span class="font-medium text-gray-700">消費記帳</span>
                 </button>
+                <button onclick="navTo('section-phrasebook')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center gap-2 border border-gray-100">
+                    <span class="text-3xl">🗣️</span>
+                    <span class="font-medium text-gray-700">語音翻譯</span>
+                </button>
                 <button onclick="navTo('section-transport')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center gap-2 border border-gray-100">
                     <span class="text-3xl">🚄</span>
                     <span class="font-medium text-gray-700">交通指引</span>
                 </button>
-                <button onclick="navTo('section-phrasebook')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center gap-2 border border-gray-100">
-                    <span class="text-3xl">🗣️</span>
-                    <span class="font-medium text-gray-700">救急日語</span>
-                </button>
             </div>
         </div>
 
-        <!-- SECTION 2: ITINERARY (EDITABLE) -->
+        <!-- SECTION 2: ITINERARY -->
         <div id="section-itinerary" class="page-section">
             <div class="flex justify-between items-end mb-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">行程規劃</h2>
-                    <p class="text-sm text-gray-500">1/31 - 2/16 自動排序</p>
-                </div>
-                <button onclick="resetItinerary()" class="text-xs text-red-400 underline">重置行程</button>
+                <h2 class="text-2xl font-bold text-gray-800">行程規劃</h2>
+                <button onclick="resetItinerary()" class="text-xs text-red-400 underline">重置</button>
             </div>
-
-            <!-- Filter -->
             <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2">
-                <button onclick="filterItinerary('all')" class="px-4 py-2 bg-gray-800 text-white rounded-full text-sm font-medium whitespace-nowrap active-filter">全部顯示</button>
+                <button onclick="filterItinerary('all')" class="px-4 py-2 bg-gray-800 text-white rounded-full text-sm font-medium whitespace-nowrap active-filter">全部</button>
                 <button onclick="filterItinerary('tokyo')" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full text-sm font-medium whitespace-nowrap">東京</button>
                 <button onclick="filterItinerary('kyoto')" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full text-sm font-medium whitespace-nowrap">京都</button>
                 <button onclick="filterItinerary('osaka')" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full text-sm font-medium whitespace-nowrap">大阪</button>
             </div>
-
-            <!-- Timeline List -->
-            <div class="relative pl-4 border-l-2 border-gray-200 space-y-6" id="itinerary-list">
-                <!-- JS Populated -->
-            </div>
-            
-            <div class="h-12"></div> <!-- Spacer -->
+            <div class="relative pl-4 border-l-2 border-gray-200 space-y-6" id="itinerary-list"></div>
+            <div class="h-12"></div>
         </div>
 
-        <!-- SECTION 3: BUDGET -->
+        <!-- SECTION 3: BUDGET (修正版) -->
         <div id="section-budget" class="page-section">
             <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">預算管家</h2>
+                <!-- 這裡加了重置按鈕 -->
+                <div class="flex justify-between items-end mb-2">
+                    <h2 class="text-2xl font-bold text-gray-800">預算管家</h2>
+                    <button onclick="resetBudget()" class="text-xs text-red-500 underline font-bold px-2 py-1 bg-red-50 rounded">🔄 重置記帳</button>
+                </div>
                 <div class="flex gap-4">
                     <div class="flex-1 bg-white p-3 rounded-xl shadow-card border border-gray-100">
                         <p class="text-xs text-gray-400">總預算</p>
-                        <input type="number" id="total-budget-input" value="200000" class="text-lg font-bold w-full bg-transparent border-b border-dashed border-gray-300 focus:outline-none focus:border-japan-red" onchange="updateBudgetChart()">
+                        <input type="number" id="total-budget-input" class="text-lg font-bold w-full bg-transparent border-b border-dashed border-gray-300 focus:outline-none focus:border-japan-red" onchange="updateBudgetChart()">
                     </div>
                     <div class="flex-1 bg-white p-3 rounded-xl shadow-card border border-gray-100">
                         <p class="text-xs text-gray-400">剩餘</p>
@@ -174,13 +151,9 @@
                     </div>
                 </div>
             </div>
-
             <div class="bg-white p-4 rounded-xl shadow-card mb-6">
-                <div class="chart-container">
-                    <canvas id="budgetChart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="budgetChart"></canvas></div>
             </div>
-
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <h3 class="font-bold text-gray-700 mb-3 text-sm">✏️ 新增消費</h3>
                 <div class="grid grid-cols-2 gap-3 mb-3">
@@ -209,24 +182,11 @@
             <div id="checklist-container" class="space-y-6"></div>
         </div>
 
-        <!-- Hidden Sections (Phrasebook/Transport/Emergency) -->
+        <!-- HIDDEN SECTIONS -->
         <div id="section-phrasebook" class="page-section">
             <button onclick="navTo('section-home')" class="mb-4 text-gray-500 text-sm">← 返回</button>
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">🗣️ 救急日語</h2>
-            <div class="space-y-4">
-                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-blue-500">
-                    <p class="text-xl font-bold">すみません</p>
-                    <p class="text-sm text-gray-500">Sumimasen (不好意思 / 借過)</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-green-500">
-                    <p class="text-xl font-bold">これをお願いします</p>
-                    <p class="text-sm text-gray-500">Kore o onegaishimasu (麻煩給我這個)</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-red-500">
-                    <p class="text-xl font-bold">トイレはどこですか？</p>
-                    <p class="text-sm text-gray-500">Toire wa doko desu ka? (廁所在哪裡？)</p>
-                </div>
-            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🗣️ 救急日語 (點擊發音)</h2>
+            <div class="space-y-4" id="phrase-container"></div>
         </div>
 
         <div id="section-transport" class="page-section">
@@ -234,399 +194,218 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-6">🚇 交通指南</h2>
             <div class="bg-white rounded-xl shadow-card p-4 space-y-4">
                 <h3 class="font-bold border-b pb-2">Suica / IC卡</h3>
-                <p class="text-sm text-gray-600">iPhone 用戶請直接在「錢包」App 按 + 號搜尋 Suica，用 Apple Pay 儲值最方便。</p>
-                <h3 class="font-bold border-b pb-2 pt-2">Google Maps</h3>
-                <p class="text-sm text-gray-600">在日本比 Apple Maps 準確。注意看「月台號碼」和「車廂建議位置」。</p>
+                <p class="text-sm text-gray-600">iPhone 用戶請直接在「錢包」App 按 + 號搜尋 Suica，用 Apple Pay 儲值。</p>
+                <h3 class="font-bold border-b pb-2 pt-2">實用連結</h3>
+                <div class="flex gap-2">
+                    <a href="https://www.google.com/maps" target="_blank" class="flex-1 bg-blue-50 text-blue-600 py-2 rounded text-center text-sm font-bold">Google Maps</a>
+                    <a href="https://world.jorudan.co.jp/mln/zh-tw/" target="_blank" class="flex-1 bg-green-50 text-green-600 py-2 rounded text-center text-sm font-bold">乘換案內</a>
+                </div>
             </div>
         </div>
 
     </main>
 
-    <!-- EDIT ITINERARY MODAL -->
+    <!-- MODALS (Itinerary, Size, Settings) -->
     <div id="edit-modal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" onclick="closeModal()"></div>
-        
-        <div class="modal-container bg-white w-11/12 max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto max-h-[90vh]">
-            <div class="modal-content py-4 text-left px-6">
-                <!-- Header -->
-                <div class="flex justify-between items-center pb-3 border-b">
-                    <div>
-                        <p class="text-xs text-gray-500 font-bold uppercase" id="modal-date-label">DATE</p>
-                        <p class="text-xl font-bold text-japan-red" id="modal-day-display">Day X</p>
-                    </div>
-                    <div class="modal-close cursor-pointer z-50" onclick="closeModal()">
-                        <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-                            <path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path>
-                        </svg>
+        <div class="modal-container bg-white w-11/12 max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto max-h-[90vh] p-6">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <p class="text-xl font-bold text-japan-red" id="modal-day-display">Day X</p>
+                <div class="cursor-pointer" onclick="closeModal()">✕</div>
+            </div>
+            <div class="my-5 space-y-4">
+                <input type="hidden" id="modal-date-key">
+                <div><label class="block text-sm font-bold mb-1">城市</label><select id="modal-city" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5"><option value="tokyo">東京</option><option value="kyoto">京都</option><option value="osaka">大阪</option><option value="move">移動日</option></select></div>
+                <div><label class="block text-sm font-bold mb-1">標題</label><input type="text" id="modal-title" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5"></div>
+                <div><label class="block text-sm font-bold mb-1">筆記</label><textarea id="modal-desc" rows="3" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5"></textarea></div>
+                <div><label class="block text-sm font-bold mb-1">景點 (逗號分隔)</label><input type="text" id="modal-spots" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5"></div>
+            </div>
+            <button onclick="saveItineraryItem()" class="w-full py-2 bg-japan-red text-white font-medium rounded-lg">儲存</button>
+        </div>
+    </div>
+
+    <div id="size-modal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" onclick="closeSizeGuide()"></div>
+        <div class="modal-container bg-white w-11/12 max-w-md mx-auto rounded-xl shadow-2xl z-50 p-6">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">👟 尺寸對照表</h3><div class="cursor-pointer" onclick="closeSizeGuide()">✕</div></div>
+            <div class="overflow-x-auto"><table class="w-full text-sm text-center border-collapse"><tr class="bg-gray-100 font-bold"><td class="p-2 border">JP</td><td class="p-2 border">US(M)</td><td class="p-2 border">US(W)</td><td class="p-2 border">EU</td></tr><tr><td class="p-2 border">23</td><td class="p-2 border">5</td><td class="p-2 border">6</td><td class="p-2 border">37</td></tr><tr><td class="p-2 border">24</td><td class="p-2 border">6</td><td class="p-2 border">7</td><td class="p-2 border">38</td></tr><tr><td class="p-2 border">25</td><td class="p-2 border">7</td><td class="p-2 border">8</td><td class="p-2 border">40</td></tr><tr><td class="p-2 border">26</td><td class="p-2 border">8</td><td class="p-2 border">9</td><td class="p-2 border">41</td></tr><tr><td class="p-2 border">27</td><td class="p-2 border">9</td><td class="p-2 border">10</td><td class="p-2 border">42.5</td></tr><tr><td class="p-2 border">28</td><td class="p-2 border">10</td><td class="p-2 border">11</td><td class="p-2 border">44</td></tr></table></div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" onclick="closeSettings()"></div>
+        <div class="modal-container bg-white w-11/12 max-w-md mx-auto rounded-xl shadow-2xl z-50 p-6">
+            <h3 class="text-xl font-bold mb-4">⚙️ 設定與備份</h3>
+            <div class="space-y-4">
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <h4 class="font-bold text-blue-800 mb-1">資料備份</h4>
+                    <p class="text-xs text-blue-600 mb-3">下載備份檔或讀取備份。</p>
+                    <div class="flex gap-2">
+                        <button onclick="exportData()" class="flex-1 bg-blue-600 text-white py-2 rounded text-sm font-bold shadow">📥 下載</button>
+                        <button onclick="document.getElementById('file-upload').click()" class="flex-1 bg-white text-blue-600 border border-blue-600 py-2 rounded text-sm font-bold shadow">📤 讀取</button>
+                        <input type="file" id="file-upload" class="hidden" onchange="importData(this)">
                     </div>
                 </div>
-
-                <!-- Body -->
-                <div class="my-5 space-y-4">
-                    <!-- Hidden ID -->
-                    <input type="hidden" id="modal-date-key">
-                    
-                    <div>
-                        <label class="block text-sm text-gray-700 font-bold mb-1">城市 / 地區</label>
-                        <select id="modal-city" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5">
-                            <option value="tokyo">東京 (Tokyo)</option>
-                            <option value="kyoto">京都 (Kyoto)</option>
-                            <option value="osaka">大阪 (Osaka)</option>
-                            <option value="other">其他 (Other)</option>
-                            <option value="move">移動日 (Moving)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm text-gray-700 font-bold mb-1">主要標題</label>
-                        <input type="text" id="modal-title" placeholder="例如：澀谷逛街、環球影城..." class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm text-gray-700 font-bold mb-1">重點筆記 (行程描述)</label>
-                        <textarea id="modal-desc" rows="3" placeholder="詳細行程、午餐吃什麼..." class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm text-gray-700 font-bold mb-1">景點標籤 (用逗號分開)</label>
-                        <input type="text" id="modal-spots" placeholder="Shibuya Sky, 八公像, 壽司" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5">
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="flex justify-end pt-2">
-                    <button onclick="saveItineraryItem()" class="px-6 py-2 bg-japan-red text-white font-medium rounded-lg shadow-md hover:bg-red-700 active:scale-95 transition w-full">儲存行程</button>
-                </div>
+                <div class="pt-4 border-t"><button onclick="closeSettings()" class="w-full py-2 text-gray-500">關閉</button></div>
             </div>
         </div>
     </div>
 
     <!-- Bottom Nav -->
     <nav class="bg-white border-t border-gray-200 flex justify-around items-center h-20 pb-2 z-30 shrink-0">
-        <button onclick="navTo('section-home')" class="nav-item active flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-home">
-            <span class="text-xl px-4 py-1">🏠</span>
-            <span class="text-[10px]">首頁</span>
-        </button>
-        <button onclick="navTo('section-itinerary')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-itinerary">
-            <span class="text-xl px-4 py-1">📅</span>
-            <span class="text-[10px]">行程</span>
-        </button>
-        <button onclick="navTo('section-budget')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-budget">
-            <span class="text-xl px-4 py-1">💴</span>
-            <span class="text-[10px]">記帳</span>
-        </button>
-        <button onclick="navTo('section-checklist')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-checklist">
-            <span class="text-xl px-4 py-1">✅</span>
-            <span class="text-[10px]">清單</span>
-        </button>
+        <button onclick="navTo('section-home')" class="nav-item active flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-home"><span class="text-xl px-4 py-1">🏠</span><span class="text-[10px]">首頁</span></button>
+        <button onclick="navTo('section-itinerary')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-itinerary"><span class="text-xl px-4 py-1">📅</span><span class="text-[10px]">行程</span></button>
+        <button onclick="navTo('section-budget')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-budget"><span class="text-xl px-4 py-1">💴</span><span class="text-[10px]">記帳</span></button>
+        <button onclick="navTo('section-checklist')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-checklist"><span class="text-xl px-4 py-1">✅</span><span class="text-[10px]">清單</span></button>
     </nav>
 
     <script>
-        // --- CONSTANTS ---
         const START_DATE = new Date('2026-01-31');
         const END_DATE = new Date('2026-02-16');
-        const TOTAL_DAYS = 17;
-
-        // --- STATE ---
-        let itineraryData = []; // Will be loaded from LS
         let currentBudget = 200000;
         let expenses = [];
+        let itineraryData = [];
         let myChart = null;
+        let exchangeRate = 0.22; 
 
-        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            initItineraryData(); // Load or Generate Skeleton
+            initItineraryData();
             renderItinerary(itineraryData);
-            
-            // Checklist & Budget
             renderChecklist();
             loadBudget();
             initChart();
-            updateBudgetDisplay();
-
-            // Countdown
+            updateBudgetChart(); // Force update on load
             updateCountdown();
+            renderPhrases();
+            
+            const savedRate = localStorage.getItem('jp_rate');
+            if(savedRate) {
+                exchangeRate = parseFloat(savedRate);
+                document.getElementById('rate-display').innerText = exchangeRate;
+            }
         });
 
-        // --- ITINERARY CORE LOGIC ---
-        function initItineraryData() {
-            const stored = localStorage.getItem('jp_itinerary_2026_v2');
-            
-            if (stored) {
-                itineraryData = JSON.parse(stored);
-            } else {
-                // Generate Skeleton for 1/31 - 2/16
-                itineraryData = [];
-                let curr = new Date(START_DATE);
-                let dayCount = 1;
-
-                while (curr <= END_DATE) {
-                    const dateStr = `${curr.getMonth()+1}/${curr.getDate()}`;
-                    // Add some default examples
-                    let title = "點擊編輯行程...";
-                    let desc = "尚未規劃";
-                    let city = "tokyo";
-                    let spots = [];
-                    let icon = "📝";
-
-                    if (dayCount === 1) { title = "抵達日本 🇯🇵"; desc = "成田/羽田機場入境，前往飯店 Check-in"; icon = "✈️"; }
-                    if (dayCount === 2) { title = "東京探索"; desc = "淺草、晴空塔一日遊"; spots=["雷門", "晴空塔"]; icon = "🏮"; }
-                    
-                    itineraryData.push({
-                        id: dayCount,
-                        dateKey: curr.toISOString().split('T')[0], // 2026-01-31
-                        displayDate: dateStr,
-                        dayNum: dayCount,
-                        city: city,
-                        title: title,
-                        desc: desc,
-                        spots: spots,
-                        icon: icon
-                    });
-                    
-                    curr.setDate(curr.getDate() + 1);
-                    dayCount++;
-                }
-                saveItinerary();
-            }
-        }
-
-        function saveItinerary() {
-            localStorage.setItem('jp_itinerary_2026_v2', JSON.stringify(itineraryData));
-            renderItinerary(itineraryData);
-        }
-
-        function resetItinerary() {
-            if(confirm("確定要重置所有行程嗎？會回到預設狀態。")) {
-                localStorage.removeItem('jp_itinerary_2026_v2');
-                initItineraryData();
-            }
-        }
-
-        function renderItinerary(data) {
-            const container = document.getElementById('itinerary-list');
-            container.innerHTML = '';
-
-            data.forEach(item => {
-                // Determine Day of Week
-                const d = new Date(item.dateKey);
-                const days = ['日', '一', '二', '三', '四', '五', '六'];
-                const dayName = days[d.getDay()];
-                const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
-
-                const node = document.createElement('div');
-                node.className = 'relative mb-6 pl-4 animate-fade-in group';
-                node.innerHTML = `
-                    <div class="absolute -left-[9px] top-4 w-4 h-4 rounded-full ${isWeekend ? 'bg-japan-red' : 'bg-gray-400'} border-2 border-white ring-2 ring-gray-100"></div>
-                    
-                    <div class="bg-white p-4 rounded-xl shadow-card border border-gray-100 relative hover:shadow-md transition cursor-pointer" onclick="openEditModal('${item.dateKey}')">
-                        <div class="absolute top-3 right-3 text-gray-300 text-sm group-hover:text-japan-red transition">✏️ 編輯</div>
-                        
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-lg text-center min-w-[60px]">
-                                <span class="block text-xs uppercase">Day ${item.dayNum}</span>
-                                <span class="block text-sm text-gray-800">${item.displayDate} <span class="text-xs">(${dayName})</span></span>
-                            </div>
-                            <span class="text-2xl">${item.icon}</span>
-                        </div>
-                        
-                        <h3 class="font-bold text-lg text-gray-800 mb-1">${item.title}</h3>
-                        <p class="text-sm text-gray-600 mb-3 whitespace-pre-line">${item.desc}</p>
-                        
-                        <div class="flex flex-wrap gap-2">
-                            <span class="text-xs bg-gray-800 text-white px-2 py-1 rounded capitalize">${item.city}</span>
-                            ${item.spots.map(spot => `<span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-md border border-red-100">${spot}</span>`).join('')}
-                        </div>
-                    </div>
-                `;
-                container.appendChild(node);
-            });
-        }
-
-        function filterItinerary(city) {
-            // UI Toggle
-            document.querySelectorAll('#section-itinerary button').forEach(btn => {
-                if (btn.innerText.toLowerCase().includes('全部') && city === 'all') {
-                    btn.classList.add('bg-gray-800', 'text-white'); btn.classList.remove('bg-white', 'text-gray-600');
-                } else if (btn.getAttribute('onclick')?.includes(city) && city !== 'all') {
-                    btn.classList.add('bg-gray-800', 'text-white'); btn.classList.remove('bg-white', 'text-gray-600');
-                } else {
-                    btn.classList.remove('bg-gray-800', 'text-white'); btn.classList.add('bg-white', 'text-gray-600');
-                }
-            });
-
-            if (city === 'all') {
-                renderItinerary(itineraryData);
-            } else {
-                const filtered = itineraryData.filter(item => item.city === city);
-                renderItinerary(filtered);
-            }
-        }
-
-        // --- MODAL LOGIC ---
-        function openEditModal(dateKey) {
-            const item = itineraryData.find(i => i.dateKey === dateKey);
-            if (!item) return;
-
-            // Fill Data
-            document.getElementById('modal-date-key').value = item.dateKey;
-            document.getElementById('modal-day-display').innerText = `Day ${item.dayNum} (${item.displayDate})`;
-            document.getElementById('modal-date-label').innerText = new Date(item.dateKey).toDateString();
-            
-            document.getElementById('modal-city').value = item.city;
-            document.getElementById('modal-title').value = item.title;
-            document.getElementById('modal-desc').value = item.desc;
-            document.getElementById('modal-spots').value = item.spots.join(', ');
-
-            // Show Modal
-            const modal = document.getElementById('edit-modal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            document.body.classList.add('modal-active');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('edit-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            document.body.classList.remove('modal-active');
-        }
-
-        function saveItineraryItem() {
-            const key = document.getElementById('modal-date-key').value;
-            const idx = itineraryData.findIndex(i => i.dateKey === key);
-            
-            if (idx !== -1) {
-                itineraryData[idx].city = document.getElementById('modal-city').value;
-                itineraryData[idx].title = document.getElementById('modal-title').value;
-                itineraryData[idx].desc = document.getElementById('modal-desc').value;
-                
-                const spotsStr = document.getElementById('modal-spots').value;
-                itineraryData[idx].spots = spotsStr ? spotsStr.split(',').map(s => s.trim()) : [];
-
-                // Auto icon update based on city/keywords could go here
-                if (itineraryData[idx].city === 'move') itineraryData[idx].icon = '🚄';
-                else if (itineraryData[idx].city === 'tokyo') itineraryData[idx].icon = '🏙️';
-                else if (itineraryData[idx].city === 'kyoto') itineraryData[idx].icon = '⛩️';
-                else if (itineraryData[idx].city === 'osaka') itineraryData[idx].icon = '🐙';
-                if (itineraryData[idx].title.includes('樂園') || itineraryData[idx].title.includes('迪士尼') || itineraryData[idx].title.includes('USJ')) itineraryData[idx].icon = '🎢';
-                
-                saveItinerary();
-                closeModal();
-            }
-        }
-
-        // --- BUDGET LOGIC ---
-        function loadBudget() {
-            const saved = JSON.parse(localStorage.getItem('jp_budget_v2'));
-            if (saved) {
-                currentBudget = saved.total;
-                expenses = saved.expenses;
-                document.getElementById('total-budget-input').value = currentBudget;
-            }
-        }
-        function saveBudget() {
-            localStorage.setItem('jp_budget_v2', JSON.stringify({ total: currentBudget, expenses: expenses }));
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('budgetChart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['餐飲', '交通', '購物', '門票', '住宿', '剩餘'],
-                    datasets: [{
-                        data: [0,0,0,0,0,100],
-                        backgroundColor: ['#F6AD55', '#63B3ED', '#F687B3', '#9F7AEA', '#4FD1C5', '#E2E8F0'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-        function updateBudgetChart() {
-            currentBudget = parseInt(document.getElementById('total-budget-input').value) || 0;
-            const grouped = { food: 0, transport: 0, shopping: 0, ticket: 0, lodging: 0 };
-            expenses.forEach(e => grouped[e.cat] += e.amount);
-            const totalSpent = Object.values(grouped).reduce((a, b) => a + b, 0);
-            const remaining = Math.max(0, currentBudget - totalSpent);
-            
-            myChart.data.datasets[0].data = [...Object.values(grouped), remaining];
-            myChart.update();
-            
-            document.getElementById('remaining-budget').innerText = `¥${remaining.toLocaleString()}`;
-            saveBudget();
-        }
-        function addExpense() {
-            const cat = document.getElementById('expense-category').value;
-            const amount = parseInt(document.getElementById('expense-amount').value);
-            if (amount > 0) {
-                expenses.push({ cat, amount });
+        // --- Budget Reset Logic ---
+        function resetBudget() {
+            if(confirm("確定要重置所有記帳紀錄嗎？(無法復原)")) {
+                expenses = [];
+                // Reset input to default but don't force it if user wants custom
+                // But generally users want clean slate
                 document.getElementById('expense-amount').value = '';
-                updateBudgetChart();
-                alert('已記帳！');
+                updateBudgetChart(); 
+                alert("記帳已歸零！");
             }
         }
 
-        // --- CHECKLIST LOGIC ---
-        const checklistCategories = {
-            "重要證件": ["護照 (效期6個月+)", "VJW截圖", "機票/飯店憑證", "保險單", "現金/信用卡"],
-            "電子產品": ["手機/充電線", "行動電源", "轉接頭 (雙扁腳)", "SIM卡/漫遊", "耳機"],
-            "生活": ["盥洗用品", "常備藥", "衣物", "折疊傘", "塑膠袋"]
-        };
-        function renderChecklist() {
-            const container = document.getElementById('checklist-container');
-            container.innerHTML = '';
-            const savedState = JSON.parse(localStorage.getItem('jp_checklist_v2')) || {};
-            let total = 0, checked = 0;
-
-            for (const [cat, items] of Object.entries(checklistCategories)) {
-                const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-xl shadow-card';
-                let html = `<h3 class="font-bold text-gray-800 mb-2 border-b border-gray-100 pb-1">${cat}</h3><div class="space-y-1">`;
-                items.forEach((item, idx) => {
-                    const id = `${cat}-${idx}`;
-                    const isChecked = savedState[id] ? 'checked' : '';
-                    if (isChecked) checked++;
-                    total++;
-                    html += `
-                        <label class="flex items-center gap-3 py-2 cursor-pointer group">
-                            <input type="checkbox" class="hidden custom-checkbox" id="${id}" ${isChecked} onchange="toggleCheck('${id}')">
-                            <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition group-hover:border-matcha"></div>
-                            <span class="text-gray-700 text-sm group-hover:text-gray-900">${item}</span>
-                        </label>`;
-                });
-                div.innerHTML = html + '</div>';
-                container.appendChild(div);
+        // --- Currency ---
+        function convertCurrency(source) {
+            const jpyInput = document.getElementById('calc-jpy');
+            const twdInput = document.getElementById('calc-twd');
+            if (source === 'jpy') {
+                const val = parseFloat(jpyInput.value);
+                if(!isNaN(val)) twdInput.value = Math.round(val * exchangeRate); else twdInput.value = '';
+            } else {
+                const val = parseFloat(twdInput.value);
+                if(!isNaN(val)) jpyInput.value = Math.round(val / exchangeRate); else jpyInput.value = '';
             }
-            document.getElementById('checklist-progress').style.width = `${(total===0?0:(checked/total)*100)}%`;
         }
-        function toggleCheck(id) {
-            const saved = JSON.parse(localStorage.getItem('jp_checklist_v2')) || {};
-            if (document.getElementById(id).checked) saved[id] = true; else delete saved[id];
-            localStorage.setItem('jp_checklist_v2', JSON.stringify(saved));
-            renderChecklist();
-        }
-        function resetChecklist() {
-            if(confirm('重置清單？')) { localStorage.removeItem('jp_checklist_v2'); renderChecklist(); }
-        }
-
-        // --- UTILS ---
-        function navTo(id) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.nav-item[data-target="${id}"]`).classList.add('active');
-            document.getElementById('main-container').scrollTop = 0;
+        function editRate() {
+            const newRate = prompt("請輸入新匯率 (JPY -> TWD)", exchangeRate);
+            if(newRate && !isNaN(newRate)) {
+                exchangeRate = parseFloat(newRate);
+                localStorage.setItem('jp_rate', exchangeRate);
+                document.getElementById('rate-display').innerText = exchangeRate;
+                convertCurrency('jpy');
+            }
         }
 
-        function updateCountdown() {
-            const now = new Date();
-            const diff = START_DATE - now;
-            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            const el = document.getElementById('countdown-display');
-            if (days > 0) el.innerText = `${days} 天`;
-            else if (days > -17) el.innerText = `旅途中 Day ${Math.abs(days)+1}`;
-            else el.innerText = "旅程結束";
+        // --- Modals ---
+        function openSizeGuide() { document.getElementById('size-modal').classList.remove('opacity-0', 'pointer-events-none'); document.body.classList.add('modal-active'); }
+        function closeSizeGuide() { document.getElementById('size-modal').classList.add('opacity-0', 'pointer-events-none'); document.body.classList.remove('modal-active'); }
+        function openSettings() { document.getElementById('settings-modal').classList.remove('opacity-0', 'pointer-events-none'); }
+        function closeSettings() { document.getElementById('settings-modal').classList.add('opacity-0', 'pointer-events-none'); }
+
+        // --- Speech ---
+        const phrases = [{ jp: "すみません", py: "Sumimasen", zh: "不好意思" }, { jp: "これをお願いします", py: "Kore o onegaishimasu", zh: "麻煩給我這個" }, { jp: "お会計をお願いします", py: "Okaikei", zh: "我要結帳" }, { jp: "トイレはどこですか", py: "Toire wa doko", zh: "廁所在哪？" }, { jp: "袋はいりません", py: "No Bag", zh: "不用袋子" }];
+        function renderPhrases() {
+            document.getElementById('phrase-container').innerHTML = phrases.map(p => `<div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-indigo-500 flex justify-between items-center cursor-pointer active:bg-gray-50 transition" onclick="speak('${p.jp}')"><div><p class="text-xl font-bold text-gray-800">${p.jp}</p><p class="text-xs text-gray-400">${p.py}</p><p class="text-sm text-gray-600 mt-1">${p.zh}</p></div><div class="text-2xl text-indigo-600">🔊</div></div>`).join('');
         }
+        function speak(text) { if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = 0.9; window.speechSynthesis.speak(u); } else alert("不支援發音"); }
+
+        // --- Backup ---
+        function exportData() {
+            const data = { itinerary: JSON.parse(localStorage.getItem('jp_itinerary_2026_v2')||'[]'), budget: JSON.parse(localStorage.getItem('jp_budget_v2')||'{}'), checklist: JSON.parse(localStorage.getItem('jp_checklist_v2')||'{}'), rate: localStorage.getItem('jp_rate') };
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `JapanTrip_Backup.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        function importData(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(confirm("確定要讀取備份？(覆蓋目前資料)")) {
+                        if(data.itinerary) localStorage.setItem('jp_itinerary_2026_v2', JSON.stringify(data.itinerary));
+                        if(data.budget) localStorage.setItem('jp_budget_v2', JSON.stringify(data.budget));
+                        if(data.checklist) localStorage.setItem('jp_checklist_v2', JSON.stringify(data.checklist));
+                        if(data.rate) localStorage.setItem('jp_rate', data.rate);
+                        location.reload();
+                    }
+                } catch(err) { alert("檔案錯誤"); }
+            }; reader.readAsText(file);
+        }
+
+        // --- Core Logic ---
+        function navTo(id){document.querySelectorAll('.page-section').forEach(e=>e.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));document.querySelector(`.nav-item[data-target="${id}"]`).classList.add('active');document.getElementById('main-container').scrollTop=0;}
+        function updateCountdown(){const diff=START_DATE-new Date();const d=Math.ceil(diff/864e5);document.getElementById('countdown-display').innerText=d>0?`${d} 天`:d>-17?`旅途中 Day ${Math.abs(d)+1}`:"旅程結束";}
+        
+        function initItineraryData(){
+            const s=localStorage.getItem('jp_itinerary_2026_v2');
+            if(s)itineraryData=JSON.parse(s);
+            else{
+                let c=new Date(START_DATE),d=1;
+                while(c<=END_DATE){itineraryData.push({dateKey:c.toISOString().split('T')[0],displayDate:`${c.getMonth()+1}/${c.getDate()}`,dayNum:d,city:'tokyo',title:d===1?'抵達日本 🇯🇵':'點擊編輯...',desc:'尚未規劃',spots:[],icon:d===1?'✈️':'📝'});c.setDate(c.getDate()+1);d++;}
+                saveItinerary();
+            }
+        }
+        function saveItinerary(){localStorage.setItem('jp_itinerary_2026_v2',JSON.stringify(itineraryData));renderItinerary(itineraryData);}
+        function renderItinerary(d){
+            const c=document.getElementById('itinerary-list');c.innerHTML='';
+            d.forEach(i=>{
+                const wk=['日','一','二','三','四','五','六'][new Date(i.dateKey).getDay()],isWk=(wk==='日'||wk==='六');
+                c.innerHTML+=`<div class="relative mb-6 pl-4 group"><div class="absolute -left-[9px] top-4 w-4 h-4 rounded-full ${isWk?'bg-japan-red':'bg-gray-400'} border-2 border-white ring-2 ring-gray-100"></div><div class="bg-white p-4 rounded-xl shadow-card border border-gray-100 relative cursor-pointer" onclick="openEditModal('${i.dateKey}')"><div class="flex items-center gap-3 mb-2"><div class="bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-lg text-center min-w-[60px]"><span class="block text-xs uppercase">Day ${i.dayNum}</span><span class="block text-sm text-gray-800">${i.displayDate} <span class="text-xs">(${wk})</span></span></div><span class="text-2xl">${i.icon}</span></div><h3 class="font-bold text-lg text-gray-800 mb-1">${i.title}</h3><p class="text-sm text-gray-600 mb-3 whitespace-pre-line">${i.desc}</p><div class="flex flex-wrap gap-2"><span class="text-xs bg-gray-800 text-white px-2 py-1 rounded capitalize">${i.city}</span>${i.spots.map(s=>`<span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-md border border-red-100">${s}</span>`).join('')}</div></div></div>`;
+            });
+        }
+        function filterItinerary(city){document.querySelectorAll('#section-itinerary button').forEach(b=>{if((city==='all'&&b.innerText.includes('全'))||(city!=='all'&&b.getAttribute('onclick').includes(city))){b.classList.add('bg-gray-800','text-white');b.classList.remove('bg-white','text-gray-600');}else{b.classList.remove('bg-gray-800','text-white');b.classList.add('bg-white','text-gray-600');}});renderItinerary(city==='all'?itineraryData:itineraryData.filter(i=>i.city===city));}
+        function openEditModal(k){const i=itineraryData.find(x=>x.dateKey===k);document.getElementById('modal-date-key').value=k;document.getElementById('modal-day-display').innerText=`Day ${i.dayNum} (${i.displayDate})`;document.getElementById('modal-city').value=i.city;document.getElementById('modal-title').value=i.title;document.getElementById('modal-desc').value=i.desc;document.getElementById('modal-spots').value=i.spots.join(', ');document.getElementById('edit-modal').classList.remove('opacity-0','pointer-events-none');document.body.classList.add('modal-active');}
+        function closeModal(){document.getElementById('edit-modal').classList.add('opacity-0','pointer-events-none');document.body.classList.remove('modal-active');}
+        function saveItineraryItem(){
+            const k=document.getElementById('modal-date-key').value,i=itineraryData.findIndex(x=>x.dateKey===k);
+            if(i!==-1){
+                itineraryData[i].city=document.getElementById('modal-city').value;itineraryData[i].title=document.getElementById('modal-title').value;itineraryData[i].desc=document.getElementById('modal-desc').value;itineraryData[i].spots=document.getElementById('modal-spots').value.split(',').filter(s=>s.trim()).map(s=>s.trim());
+                if(itineraryData[i].city==='move')itineraryData[i].icon='🚄';else if(itineraryData[i].city==='tokyo')itineraryData[i].icon='🏙️';else if(itineraryData[i].city==='kyoto')itineraryData[i].icon='⛩️';else if(itineraryData[i].city==='osaka')itineraryData[i].icon='🐙';
+                saveItinerary();closeModal();
+            }
+        }
+        function resetItinerary(){if(confirm("重置行程？")){localStorage.removeItem('jp_itinerary_2026_v2');initItineraryData();renderItinerary(itineraryData);}}
+
+        function loadBudget(){const s=JSON.parse(localStorage.getItem('jp_budget_v2'));if(s){currentBudget=s.total;expenses=s.expenses;document.getElementById('total-budget-input').value=currentBudget;}else document.getElementById('total-budget-input').value=currentBudget;}
+        function initChart(){myChart=new Chart(document.getElementById('budgetChart').getContext('2d'),{type:'doughnut',data:{labels:['餐飲','交通','購物','門票','住宿','剩餘'],datasets:[{data:[0,0,0,0,0,100],backgroundColor:['#F6AD55','#63B3ED','#F687B3','#9F7AEA','#4FD1C5','#E2E8F0'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom'}}}});}
+        function updateBudgetChart(){
+            currentBudget=parseInt(document.getElementById('total-budget-input').value)||0;
+            const g={food:0,transport:0,shopping:0,ticket:0,lodging:0};
+            expenses.forEach(e=>g[e.cat]+=e.amount);
+            const s=Object.values(g).reduce((a,b)=>a+b,0),r=Math.max(0,currentBudget-s);
+            myChart.data.datasets[0].data=[...Object.values(g),r];myChart.update();
+            document.getElementById('remaining-budget').innerText=`¥${r.toLocaleString()}`;
+            localStorage.setItem('jp_budget_v2',JSON.stringify({total:currentBudget,expenses}));
+        }
+        function addExpense(){const c=document.getElementById('expense-category').value,a=parseInt(document.getElementById('expense-amount').value);if(a>0){expenses.push({cat:c,amount:a});document.getElementById('expense-amount').value='';updateBudgetChart();alert('已記帳');}}
+
+        function renderChecklist(){const c=document.getElementById('checklist-container'),s=JSON.parse(localStorage.getItem('jp_checklist_v2'))||{},cats={"證件":["護照","VJW","機票","飯店單"],"電子":["手機","網卡","行動電源"],"生活":["盥洗","衣物","雨具"]};let t=0,d=0;c.innerHTML='';for(const[k,v]of Object.entries(cats)){let h=`<div class="bg-white p-4 rounded-xl shadow-card"><h3 class="font-bold border-b pb-1 mb-2">${k}</h3><div class="space-y-1">`;v.forEach((i,x)=>{const id=`${k}-${x}`,chk=s[id]?'checked':'';if(chk)d++;t++;h+=`<label class="flex items-center gap-3 py-2 cursor-pointer group"><input type="checkbox" class="hidden custom-checkbox" id="${id}" ${chk} onchange="toggleCheck('${id}')"><div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition group-hover:border-matcha"></div><span class="text-gray-700 text-sm">${i}</span></label>`;});c.innerHTML+=h+'</div></div>';}document.getElementById('checklist-progress').style.width=`${t===0?0:(d/t)*100}%`;}
+        function toggleCheck(id){const s=JSON.parse(localStorage.getItem('jp_checklist_v2'))||{};if(document.getElementById(id).checked)s[id]=true;else delete s[id];localStorage.setItem('jp_checklist_v2',JSON.stringify(s));renderChecklist();}
+        function resetChecklist(){if(confirm('重置清單？')){localStorage.removeItem('jp_checklist_v2');renderChecklist();}}
     </script>
 </body>
 </html>
