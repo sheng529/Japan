@@ -2,71 +2,715 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的個人主頁</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>日本旅行隨身指南 2026 | Japan Travel Companion</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        'japan-bg': '#FDFCF8',      /* Washi Paper White */
+                        'japan-text': '#2D3748',    /* Ink Black */
+                        'japan-red': '#BC002D',     /* Hinomaru Red */
+                        'japan-red-light': '#FF6B6B',
+                        'matcha': '#8DA399',        /* Matcha Green */
+                        'indigo-jp': '#1A237E',     /* Aizome Indigo */
+                        'sakura': '#F8E1E7',        /* Cherry Blossom */
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'card': '0 2px 10px rgba(0, 0, 0, 0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
+        /* Custom Styles for Mobile Optimization */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: #FDFCF8;
+            color: #2D3748;
+            -webkit-tap-highlight-color: transparent;
         }
-        /* 頂部導覽列 */
-        header {
-            background-color: #24292e;
-            color: white;
-            padding: 20px;
+
+        /* Hide scrollbar for clean UI but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Chart Container Styling (Mandatory) */
+        .chart-container {
+            position: relative;
             width: 100%;
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            max-width: 500px; /* Max width for readability */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
         }
-        /* 按鈕容器 */
-        .container {
-            width: 90%;
-            max-width: 600px; /* 電腦版不會太寬 */
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px; /* 按鈕之間的間距 */
+
+        /* Navigation Active State */
+        .nav-item.active {
+            color: #BC002D;
+            font-weight: 700;
         }
-        /* 手機好按的大按鈕樣式 */
-        .btn {
-            background-color: white;
-            padding: 20px;
+        .nav-item.active span {
+            background-color: #F8E1E7;
             border-radius: 12px;
-            text-decoration: none;
-            color: #333;
-            font-size: 1.2em;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
         }
-        .btn:active {
-            transform: scale(0.98); /* 點擊時有縮小效果 */
-            background-color: #e6e6e6;
+
+        /* Smooth Transitions */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox:checked + div {
+            background-color: #8DA399;
+            border-color: #8DA399;
+        }
+        .custom-checkbox:checked + div:after {
+            content: '✓';
+            color: white;
+            display: block;
+            text-align: center;
+            font-size: 12px;
+            line-height: 20px;
         }
     </style>
-</head>
-<body>
 
-    <header>
-        我的個人導航
+    <!-- Placeholder Comments Required by Prompt -->
+    <!-- Chosen Palette: "Nihon Harmony" - Washi Paper White (#FDFCF8), Ink Black (#2D3748), Hinomaru Red (#BC002D) for actions, Matcha Green (#8DA399) for success, Sakura Pink (#F8E1E7) for softness. Designed for high contrast outdoors and calmness. -->
+    
+    <!-- Application Structure Plan: Mobile-First Single Page App (SPA). 
+         1. Bottom Navigation: Thumb-friendly access to 4 core sections (Home, Itinerary, Budget, Checklist).
+         2. Home/Dashboard: Immediate info (Weather, Rate, Quick Phrases) for "on the go" usage.
+         3. Itinerary: Vertical timeline with accordion logic to save vertical space. Filterable by city.
+         4. Budget: Interactive Chart.js donut chart to visualize spending categories. Inputs for quick adding of expenses.
+         5. Checklist: LocalStorage-backed packing list so data persists across reloads without a database.
+         Rationale: Travelers need quick access to specific tools without navigating deep menus. The structure is flat and task-oriented. -->
+
+    <!-- Visualization & Content Choices: 
+         1. Budget Visualization: Doughnut Chart (Chart.js) -> Goal: Inform & Organize -> Shows proportion of budget used vs remaining, and category breakdown. -> Interaction: Dynamic updates when user inputs expenses.
+         2. Weather & Status: Unicode Icons & CSS Cards -> Goal: Inform -> Lightweight, fast loading, no SVG dependency.
+         3. Itinerary Timeline: CSS Flexbox/Border layout -> Goal: Organize -> Visualizes the flow of the trip clearly.
+         4. Interactive Phrasebook: JS-driven flashcards -> Goal: Inform -> Click to reveal/pronounce (visual text).
+         CONFIRMATION: NO SVG graphics used (using Unicode emojis). NO Mermaid JS used. -->
+         
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+</head>
+<body class="font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center z-20 shrink-0">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800 tracking-tight">🇯🇵 日本旅行 <span class="text-japan-red">GO</span></h1>
+            <p class="text-xs text-gray-500" id="current-date">載入中...</p>
+        </div>
+        <button onclick="toggleSettings()" class="text-2xl hover:bg-gray-100 p-2 rounded-full transition">⚙️</button>
     </header>
 
-    <div class="container">
-        <a href="https://www.google.com" class="btn">🔍 Google 搜尋</a>
-        <a href="https://www.youtube.com" class="btn">📺 YouTube</a>
-        <a href="https://chatgpt.com" class="btn">🤖 ChatGPT</a>
-        <a href="https://github.com" class="btn">🐙 GitHub</a>
-    </div>
+    <!-- Main Content Area (Scrollable) -->
+    <main class="flex-1 overflow-y-auto bg-japan-bg p-4 pb-24 relative no-scrollbar" id="main-container">
+        
+        <!-- SECTION 1: DASHBOARD (HOME) -->
+        <div id="section-home" class="page-section active">
+            <div class="mb-6">
+                <p class="text-gray-600 mb-2">早安！準備好探索了嗎？</p>
+                <div class="bg-gradient-to-r from-indigo-900 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute right-[-20px] top-[-20px] text-9xl opacity-10">🗻</div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-sm opacity-80">目的地</p>
+                                <h2 class="text-3xl font-bold">東京 Tokyo</h2>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-4xl">18°C</p>
+                                <p class="text-sm">晴時多雲 ⛅</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/20 flex justify-between text-sm">
+                            <span>匯率參考 (TWD:JPY)</span>
+                            <span class="font-bold">1 : 4.65</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Quick Actions Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <button onclick="navTo('section-phrasebook')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center justify-center gap-2 border border-gray-100">
+                    <span class="text-3xl">🗣️</span>
+                    <span class="font-medium text-gray-700">救急日語</span>
+                </button>
+                <button onclick="navTo('section-transport')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center justify-center gap-2 border border-gray-100">
+                    <span class="text-3xl">🚄</span>
+                    <span class="font-medium text-gray-700">交通指引</span>
+                </button>
+                <button onclick="navTo('section-checklist')" class="bg-white p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center justify-center gap-2 border border-gray-100">
+                    <span class="text-3xl">🎒</span>
+                    <span class="font-medium text-gray-700">行李清單</span>
+                </button>
+                <button onclick="navTo('section-emergency')" class="bg-red-50 p-4 rounded-xl shadow-card active:scale-95 transition flex flex-col items-center justify-center gap-2 border border-red-100">
+                    <span class="text-3xl">🆘</span>
+                    <span class="font-medium text-red-600">緊急聯絡</span>
+                </button>
+            </div>
+
+            <!-- Today's Highlight -->
+            <div class="bg-white rounded-xl shadow-card p-5 border-l-4 border-japan-red">
+                <h3 class="font-bold text-lg mb-2 text-gray-800">💡 今日小撇步</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    在日本搭乘手扶梯時，東京請靠左站立，大阪則習慣靠右。便利商店 (Konbini) 的炸雞是絕佳的宵夜選擇！
+                </p>
+            </div>
+        </div>
+
+        <!-- SECTION 2: ITINERARY -->
+        <div id="section-itinerary" class="page-section">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">行程總覽</h2>
+                <p class="text-sm text-gray-500">點擊行程卡片查看詳細資訊。</p>
+            </div>
+
+            <!-- City Filter -->
+            <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2">
+                <button onclick="filterItinerary('all')" class="px-4 py-2 bg-gray-800 text-white rounded-full text-sm font-medium whitespace-nowrap active-filter shadow-sm">全部</button>
+                <button onclick="filterItinerary('tokyo')" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full text-sm font-medium whitespace-nowrap shadow-sm">東京</button>
+                <button onclick="filterItinerary('kyoto')" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full text-sm font-medium whitespace-nowrap shadow-sm">京都</button>
+                <button onclick="filterItinerary('osaka')" class="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-full text-sm font-medium whitespace-nowrap shadow-sm">大阪</button>
+            </div>
+
+            <!-- Timeline Container -->
+            <div class="relative pl-4 border-l-2 border-gray-200 space-y-8" id="itinerary-list">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+
+        <!-- SECTION 3: BUDGET -->
+        <div id="section-budget" class="page-section">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">預算管家</h2>
+                <p class="text-sm text-gray-500">即時追蹤您的日幣消費狀況。</p>
+            </div>
+
+            <!-- Budget Summary Cards -->
+            <div class="flex gap-4 mb-6">
+                <div class="flex-1 bg-white p-4 rounded-xl shadow-card border border-gray-100">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">總預算 (JPY)</p>
+                    <input type="number" id="total-budget-input" value="200000" class="text-xl font-bold text-gray-800 w-full bg-transparent border-b border-dashed border-gray-300 focus:outline-none focus:border-japan-red mt-1" onchange="updateBudgetChart()">
+                </div>
+                <div class="flex-1 bg-white p-4 rounded-xl shadow-card border border-gray-100">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">剩餘 (JPY)</p>
+                    <p class="text-xl font-bold text-japan-red mt-1" id="remaining-budget">¥0</p>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="bg-white p-4 rounded-xl shadow-card mb-6">
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Add Expense Form -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h3 class="font-bold text-gray-700 mb-3 text-sm">✏️ 新增消費</h3>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <select id="expense-category" class="p-2 rounded-lg border border-gray-300 bg-white text-sm">
+                        <option value="food">🍜 餐飲</option>
+                        <option value="transport">🚇 交通</option>
+                        <option value="shopping">🛍️ 購物</option>
+                        <option value="ticket">🎫 門票</option>
+                        <option value="lodging">🏨 住宿</option>
+                    </select>
+                    <input type="number" id="expense-amount" placeholder="金額 (¥)" class="p-2 rounded-lg border border-gray-300 text-sm">
+                </div>
+                <button onclick="addExpense()" class="w-full bg-gray-800 text-white py-2 rounded-lg font-medium shadow-lg hover:bg-gray-700 active:scale-95 transition">新增紀錄</button>
+            </div>
+        </div>
+
+        <!-- SECTION 4: CHECKLIST -->
+        <div id="section-checklist" class="page-section">
+            <div class="mb-4 flex justify-between items-end">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-1">行李清單</h2>
+                    <p class="text-sm text-gray-500">出發前請確認 (自動儲存)</p>
+                </div>
+                <button onclick="resetChecklist()" class="text-xs text-red-500 underline">重置</button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="bg-gray-200 rounded-full h-4 mb-6 w-full overflow-hidden">
+                <div id="checklist-progress" class="bg-matcha h-full transition-all duration-500 ease-out" style="width: 0%"></div>
+            </div>
+
+            <!-- Checklist Items Grouped -->
+            <div id="checklist-container" class="space-y-6">
+                <!-- JS Populates this -->
+            </div>
+        </div>
+
+        <!-- SUB-SECTIONS (Hidden by default, triggered via Home) -->
+        
+        <!-- Phrasebook -->
+        <div id="section-phrasebook" class="page-section">
+            <button onclick="navTo('section-home')" class="mb-4 text-gray-500 flex items-center gap-1 text-sm">← 返回首頁</button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🇯🇵 救急日語</h2>
+            
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-blue-500">
+                    <p class="text-xs text-gray-400 mb-1">打招呼</p>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">こんにちは</p>
+                            <p class="text-sm text-gray-500">Konnichiwa (你好)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-blue-500">
+                    <p class="text-xs text-gray-400 mb-1">道謝</p>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">ありがとうございます</p>
+                            <p class="text-sm text-gray-500">Arigatou Gozaimasu (謝謝)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-green-500">
+                    <p class="text-xs text-gray-400 mb-1">點餐/購物</p>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">これをください</p>
+                            <p class="text-sm text-gray-500">Kore o kudasai (請給我這個)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-green-500">
+                    <p class="text-xs text-gray-400 mb-1">結帳</p>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">お会計をお願いします</p>
+                            <p class="text-sm text-gray-500">Okaikei o onegaishimasu (請結帳)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-card border-l-4 border-red-500">
+                    <p class="text-xs text-gray-400 mb-1">求助</p>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">すみません</p>
+                            <p class="text-sm text-gray-500">Sumimasen (不好意思 / 借過)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transport Info -->
+        <div id="section-transport" class="page-section">
+            <button onclick="navTo('section-home')" class="mb-4 text-gray-500 flex items-center gap-1 text-sm">← 返回首頁</button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🚇 交通指南</h2>
+            
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow-card overflow-hidden">
+                    <div class="bg-gray-800 text-white p-3 font-bold">IC 卡使用 (Suica/Pasmo)</div>
+                    <div class="p-4 text-sm text-gray-700 space-y-2">
+                        <p>🔹 <span class="font-bold">適用範圍：</span> 幾乎全日本的地鐵、巴士、便利商店、自動販賣機。</p>
+                        <p>🔹 <span class="font-bold">儲值：</span> 車站售票機 (可選中文介面) 或便利商店櫃台。</p>
+                        <p>🔹 <span class="font-bold">手機版：</span> iPhone 用戶可在錢包 App 直接新增 Suica，用 Apple Pay 儲值。</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-card overflow-hidden">
+                    <div class="bg-indigo-900 text-white p-3 font-bold">新幹線搭乘技巧</div>
+                    <div class="p-4 text-sm text-gray-700 space-y-2">
+                        <p>🚄 <span class="font-bold">指定席 vs 自由席：</span> 建議長途預約指定席。自由席通常在 1-3 號車廂。</p>
+                        <p>🍱 <span class="font-bold">火車便當 (Ekiben)：</span> 車站內有販售，可在車上享用。</p>
+                        <p>🎒 <span class="font-bold">大型行李：</span> 若行李三邊長超過 160cm，需預約「特大行李附帶席」。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Info -->
+        <div id="section-emergency" class="page-section">
+            <button onclick="navTo('section-home')" class="mb-4 text-gray-500 flex items-center gap-1 text-sm">← 返回首頁</button>
+            <h2 class="text-2xl font-bold text-red-600 mb-6">🆘 緊急聯絡</h2>
+            
+            <div class="grid gap-4">
+                <div class="bg-red-50 border border-red-200 p-5 rounded-xl flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-lg text-red-800">警察局</p>
+                        <p class="text-sm text-red-600">Police</p>
+                    </div>
+                    <div class="text-3xl font-black text-red-600">110</div>
+                </div>
+                <div class="bg-red-50 border border-red-200 p-5 rounded-xl flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-lg text-red-800">火警/救護車</p>
+                        <p class="text-sm text-red-600">Fire / Ambulance</p>
+                    </div>
+                    <div class="text-3xl font-black text-red-600">119</div>
+                </div>
+                <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                    <p class="font-bold text-gray-800 mb-2">台北駐日經濟文化代表處</p>
+                    <p class="text-sm text-gray-600">📍 東京都港區白金台 5-20-2</p>
+                    <p class="text-sm text-gray-600 mt-1">📞 +81-3-3280-7811 (緊急)</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bg-white border-t border-gray-200 flex justify-around items-center h-20 pb-2 z-30 shrink-0">
+        <button onclick="navTo('section-home')" class="nav-item active flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-home">
+            <span class="text-xl px-4 py-1">🏠</span>
+            <span class="text-[10px]">首頁</span>
+        </button>
+        <button onclick="navTo('section-itinerary')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-itinerary">
+            <span class="text-xl px-4 py-1">📅</span>
+            <span class="text-[10px]">行程</span>
+        </button>
+        <button onclick="navTo('section-budget')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-budget">
+            <span class="text-xl px-4 py-1">💴</span>
+            <span class="text-[10px]">記帳</span>
+        </button>
+        <button onclick="navTo('section-checklist')" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1 pt-1" data-target="section-checklist">
+            <span class="text-xl px-4 py-1">✅</span>
+            <span class="text-[10px]">清單</span>
+        </button>
+    </nav>
+
+    <script>
+        // --- DATA ---
+        
+        // Itinerary Data
+        const itineraryData = [
+            { day: 1, city: 'tokyo', title: '東京抵達 & 澀谷探索', desc: '成田機場搭乘 NEX 直達市區。晚上前往澀谷 Scramble Crossing 感受人潮。', spots: ['成田機場', '新宿飯店 Check-in', '澀谷 SHIBUYA SKY'], icon: '🏙️' },
+            { day: 2, city: 'tokyo', title: '下町風情 & 晴空塔', desc: '上午淺草寺參拜，下午前往晴空塔購物與觀景。', spots: ['雷門淺草寺', '仲見世通', '隅田川散步', '東京晴空塔'], icon: '🏮' },
+            { day: 3, city: 'tokyo', title: '迪士尼海洋一日遊', desc: '全天迪士尼海洋 (DisneySea)。記得提前購買 DPA 通關。', spots: ['地中海港灣', '驚魂古塔', '晚間遊行'], icon: '🎢' },
+            { day: 4, city: 'kyoto', title: '移動日：前往京都', desc: '搭乘新幹線前往京都。下午參觀伏見稻荷大社。', spots: ['東京車站便當', '新幹線 (約2.5hr)', '伏見稻荷大社', '鴨川散步'], icon: '🚄' },
+            { day: 5, city: 'kyoto', title: '京都古都巡禮', desc: '早起前往清水寺，避開人潮。下午在二年坂、三年坂散步。', spots: ['清水寺', '三年坂', '八坂神社', '祇園花見小路'], icon: '⛩️' },
+            { day: 6, city: 'osaka', title: '移動日：大阪美食', desc: '前往大阪，直奔道頓堀享受美食。', spots: ['心齋橋購物', '道頓堀跑跑人', '章魚燒體驗'], icon: '🐙' },
+            { day: 7, city: 'osaka', title: '環球影城 USJ', desc: '瑪利歐園區與哈利波特魔法世界。', spots: ['USJ 全日遊', '梅田藍天大廈夜景'], icon: '🏰' },
+            { day: 8, city: 'osaka', title: '最後採購 & 返程', desc: '黑門市場吃早餐，前往關西機場。', spots: ['黑門市場', '臨空城 Outlet', '關西機場'], icon: '✈️' }
+        ];
+
+        // Checklist Data
+        const checklistCategories = {
+            "重要證件": ["護照 (效期6個月以上)", "VJW 截圖 / QR Code", "機票電子檔", "飯店預訂憑證", "旅遊保險單", "日幣現金 / 信用卡"],
+            "電子產品": ["手機 & 充電線", "行動電源 (需隨身帶)", "萬用轉接頭 (日本雙扁腳)", "WiFi機 / SIM卡", "相機 / 記憶卡"],
+            "個人用品": ["常備藥品 (感冒/胃藥)", "盥洗用品 (牙刷/毛巾)", "衣物 (依季節)", "好走的鞋子", "折疊傘"],
+            "雜項": ["塑膠袋 (裝髒衣/垃圾)", "筆 (填寫入境卡)", "環保袋 (購物用)"]
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentBudget = 200000;
+        let expenses = [
+            { cat: 'lodging', amount: 50000 },
+            { cat: 'ticket', amount: 20000 },
+            { cat: 'food', amount: 5000 }
+        ]; // Initial mock data
+        let myChart = null;
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set Date
+            const now = new Date();
+            document.getElementById('current-date').innerText = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+            // Load Checklist
+            renderChecklist();
+
+            // Render Itinerary
+            renderItinerary(itineraryData);
+
+            // Init Budget Chart
+            initChart();
+            updateBudgetDisplay();
+        });
+
+        // --- NAVIGATION ---
+        function navTo(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            // Show target
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update Nav Icons
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+                // Highlight icon stroke or bg
+                const iconSpan = el.querySelector('span:first-child');
+                iconSpan.classList.remove('bg-sakura', 'rounded-xl');
+            });
+
+            // If it's a main nav item, highlight it
+            const activeNav = document.querySelector(`.nav-item[data-target="${sectionId}"]`);
+            if (activeNav) {
+                activeNav.classList.add('active');
+            }
+
+            // Scroll to top
+            document.getElementById('main-container').scrollTop = 0;
+        }
+
+        // --- ITINERARY LOGIC ---
+        function renderItinerary(data) {
+            const container = document.getElementById('itinerary-list');
+            container.innerHTML = '';
+
+            data.forEach(item => {
+                const node = document.createElement('div');
+                node.className = 'relative mb-8 pl-4 animate-fade-in';
+                node.innerHTML = `
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-japan-red border-2 border-white ring-2 ring-red-100"></div>
+                    <div class="bg-white p-4 rounded-xl shadow-card border border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">Day ${item.day}</span>
+                            <span class="text-2xl">${item.icon}</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-gray-800 mb-1">${item.title}</h3>
+                        <p class="text-sm text-gray-600 mb-3">${item.desc}</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${item.spots.map(spot => `<span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-md border border-red-100">${spot}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(node);
+            });
+        }
+
+        function filterItinerary(city) {
+            // Update UI buttons
+            document.querySelectorAll('#section-itinerary button').forEach(btn => {
+                if (btn.getAttribute('onclick').includes(city)) {
+                    btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+                    btn.classList.add('bg-gray-800', 'text-white');
+                } else {
+                    btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+                    btn.classList.remove('bg-gray-800', 'text-white');
+                }
+            });
+
+            // Filter Data
+            if (city === 'all') {
+                renderItinerary(itineraryData);
+            } else {
+                const filtered = itineraryData.filter(item => item.city === city);
+                renderItinerary(filtered);
+            }
+        }
+
+        // --- BUDGET LOGIC (Chart.js) ---
+        function initChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            
+            const groupedData = {
+                food: 0, transport: 0, shopping: 0, ticket: 0, lodging: 0
+            };
+            expenses.forEach(e => groupedData[e.cat] += e.amount);
+
+            const dataValues = Object.values(groupedData);
+            
+            // Calculate remaining
+            const totalSpent = dataValues.reduce((a, b) => a + b, 0);
+            const remaining = Math.max(0, currentBudget - totalSpent);
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['餐飲', '交通', '購物', '門票', '住宿', '剩餘預算'],
+                    datasets: [{
+                        data: [...dataValues, remaining],
+                        backgroundColor: [
+                            '#F6AD55', // Food (Orange)
+                            '#63B3ED', // Transport (Blue)
+                            '#F687B3', // Shopping (Pink)
+                            '#9F7AEA', // Ticket (Purple)
+                            '#4FD1C5', // Lodging (Teal)
+                            '#E2E8F0'  // Remaining (Gray)
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ¥${context.raw.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBudgetChart() {
+            // Update Total Budget
+            currentBudget = parseInt(document.getElementById('total-budget-input').value) || 0;
+            
+            const groupedData = {
+                food: 0, transport: 0, shopping: 0, ticket: 0, lodging: 0
+            };
+            expenses.forEach(e => groupedData[e.cat] += e.amount);
+            
+            const totalSpent = Object.values(groupedData).reduce((a, b) => a + b, 0);
+            const remaining = Math.max(0, currentBudget - totalSpent);
+
+            // Update Chart Data
+            myChart.data.datasets[0].data = [...Object.values(groupedData), remaining];
+            myChart.update();
+
+            updateBudgetDisplay();
+        }
+
+        function updateBudgetDisplay() {
+            const totalSpent = expenses.reduce((sum, item) => sum + item.amount, 0);
+            const remaining = currentBudget - totalSpent;
+            const el = document.getElementById('remaining-budget');
+            el.innerText = `¥${remaining.toLocaleString()}`;
+            
+            // Color warning
+            if (remaining < 0) {
+                el.classList.remove('text-japan-red', 'text-matcha');
+                el.classList.add('text-red-600');
+            } else {
+                el.classList.add('text-japan-red');
+            }
+        }
+
+        function addExpense() {
+            const cat = document.getElementById('expense-category').value;
+            const amount = parseInt(document.getElementById('expense-amount').value);
+
+            if (amount && amount > 0) {
+                expenses.push({ cat, amount });
+                document.getElementById('expense-amount').value = ''; // clear
+                updateBudgetChart();
+                alert("已新增消費紀錄！");
+            } else {
+                alert("請輸入有效金額");
+            }
+        }
+
+        // --- CHECKLIST LOGIC (Local Storage) ---
+        function renderChecklist() {
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+
+            // Get saved state
+            const savedState = JSON.parse(localStorage.getItem('jp_checklist_state')) || {};
+
+            let totalItems = 0;
+            let checkedItems = 0;
+
+            for (const [category, items] of Object.entries(checklistCategories)) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'bg-white p-4 rounded-xl shadow-card';
+                
+                let itemsHtml = '';
+                items.forEach((item, index) => {
+                    const id = `${category}-${index}`;
+                    const isChecked = savedState[id] ? 'checked' : '';
+                    if (isChecked) checkedItems++;
+                    totalItems++;
+
+                    itemsHtml += `
+                        <label class="flex items-center gap-3 py-2 cursor-pointer group">
+                            <input type="checkbox" class="hidden custom-checkbox" id="${id}" ${isChecked} onchange="toggleCheck('${id}')">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition group-hover:border-matcha"></div>
+                            <span class="text-gray-700 text-sm group-hover:text-gray-900">${item}</span>
+                        </label>
+                    `;
+                });
+
+                groupDiv.innerHTML = `
+                    <h3 class="font-bold text-gray-800 mb-2 border-b border-gray-100 pb-1">${category}</h3>
+                    <div class="space-y-1">
+                        ${itemsHtml}
+                    </div>
+                `;
+                container.appendChild(groupDiv);
+            }
+
+            // Update Progress Bar
+            const pct = totalItems === 0 ? 0 : (checkedItems / totalItems) * 100;
+            document.getElementById('checklist-progress').style.width = `${pct}%`;
+        }
+
+        function toggleCheck(id) {
+            const savedState = JSON.parse(localStorage.getItem('jp_checklist_state')) || {};
+            const checkbox = document.getElementById(id);
+            
+            if (checkbox.checked) {
+                savedState[id] = true;
+            } else {
+                delete savedState[id];
+            }
+
+            localStorage.setItem('jp_checklist_state', JSON.stringify(savedState));
+            renderChecklist(); // Re-render to update progress bar
+        }
+
+        function resetChecklist() {
+            if(confirm('確定要重置所有勾選項目嗎？')) {
+                localStorage.removeItem('jp_checklist_state');
+                renderChecklist();
+            }
+        }
+
+        // --- MOCK SETTINGS ---
+        function toggleSettings() {
+            alert("版本: 1.0.0\n開發者: Canvas Create\n祝您旅途愉快！");
+        }
+
+    </script>
 </body>
 </html>
